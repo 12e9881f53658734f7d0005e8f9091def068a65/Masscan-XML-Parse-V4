@@ -8,8 +8,8 @@ requests.urllib3.disable_warnings()
 
 # Settings
 maxAmountOfThreads = 50
-xmlFileName = "epson projectors.xml"
-outputFileName = "epson projectors.txt"
+xmlFileName = "only 80 nov.xml"
+outputFileName = "11-17-22 http.txt"
 
 # Internal varibles
 que = []
