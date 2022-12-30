@@ -1,15 +1,15 @@
 from logging import exception
 import xml.etree.ElementTree as et
-from socket import gethostbyaddr 
+import socket
 import requests
 import threading
 from time import sleep
 requests.urllib3.disable_warnings()
 
 # Settings
-maxAmountOfThreads = 50
-xmlFileName = "only 80 nov.xml"
-outputFileName = "11-17-22 http.txt"
+maxAmountOfThreads = 4000
+xmlFileName = "SMB PORTS FULL.xml"
+outputFileName = "SMBS SOCKET.txt"
 
 # Internal varibles
 que = []
@@ -34,7 +34,7 @@ def findHTMLTitle(content):
 
 def PTRRecord(ip):
     try:
-        return gethostbyaddr(str(ip))[0]
+        return socket.gethostbyaddr(str(ip))[0]
     except:
         return None
 
@@ -47,25 +47,45 @@ def networkRequest(ip, port):
     else:
         return None
 
+def socketRequest(ip, port):
+    try:
+        c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        c.settimeout(5)
+        c.connect((ip, int(port)))
+        c.send(b"")
+        res = c.recv(4096)
+        return res.decode("utf-8", errors="replace").replace("\n", "  ")
+    except Exception as e:
+       return e
+
+def RTSP(ip, port):
+    req = bytes(f"DESCRIBE rtsp://admin:12345@{ip}:{port}/Src/MediaInput/h264/stream_1/ch_\r\n\r\n", "utf-8")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("172.28.133.31", 554))
+    s.sendall(req)
+    data = s.recv(1024)
+    return data
+
 def writeOutFileQue(fileName, dataQue):
     clonedDataQue = dataQue.copy()
     dataQue.clear()
 
-    with open(fileName, "a") as file:
+    with open(fileName, "a", encoding="utf-8") as file:
         for data in clonedDataQue:
             file.write(data)
 
 def processData(ip, port):
-    name = PTRRecord(ip)
+    name = socketRequest(ip, port) # name = PTRRecord(ip)
+    
 
-    if name == None:
-        name = networkRequest(ip, port)
+    #if name == None:
+        # name = networkRequest(ip, port)
     
     if name != None:
         que.append(f"{ip}:{port}\t{name}\n")
     
     return
-
+# mutexes, .join might be the fix??
 def listToFile():
     while finished == False:
         if len(que) >= 10:

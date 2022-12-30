@@ -35,13 +35,13 @@ for event, element in context:
 
 
 for i in range(len(portsDict)):
-    amount.append(i)
+    amount.append(i) # AMOUNT OF THAT PORT
 
 for v in portsDict.items():
-    heights.append(v[1])
+    heights.append(v[1]) # 
 
 for v in portsDict:
-    labels.append(v)
+    labels.append(v) # PORT/NAME
   
 plt.bar(amount, heights, tick_label = labels, width = 0.8)
 
