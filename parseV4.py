@@ -4,12 +4,13 @@ import socket
 import requests
 import threading
 from time import sleep
+from smb.SMBConnection import SMBConnection
 requests.urllib3.disable_warnings()
 
 # Settings
-maxAmountOfThreads = 4000
-xmlFileName = "SMB PORTS FULL.xml"
-outputFileName = "SMBS SOCKET.txt"
+maxAmountOfThreads = 2000
+xmlFileName = "3-13 all ports.xml"
+outputFileName = "3-13 all ports.txt"
 
 # Internal varibles
 que = []
@@ -18,6 +19,7 @@ threads = []
 writingToFile = False
 finished = False
 currentLineNumber = 1 # Might be for testing purposes.
+lock = threading.Lock()
 xmlDumpData = {
     "ip": "",
     "port": ""
@@ -75,15 +77,24 @@ def writeOutFileQue(fileName, dataQue):
             file.write(data)
 
 def processData(ip, port):
-    name = socketRequest(ip, port) # name = PTRRecord(ip)
-    
+    name = networkRequest(ip, port)
 
-    #if name == None:
-        # name = networkRequest(ip, port)
+    if not name:
+        name = PTRRecord(ip)
     
-    if name != None:
-        que.append(f"{ip}:{port}\t{name}\n")
-    
+    """
+    name = ""
+    if port == "139":
+        dnsLookup = PTRRecord(ip)
+        name = getShares(dnsLookup)
+
+    if name != None and name != "":
+        with lock:
+            que.append(f"{ip}:{port} {dnsLookup} \t{name}\n")
+    """
+    if name != None and name != "":
+        with lock:
+            que.append(f"{ip}:{port}\t{name}\n")
     return
 # mutexes, .join might be the fix??
 def listToFile():
@@ -122,6 +133,7 @@ for event, element in context:
         try:
             thread = threading.Thread(target=processData, args=(xmlDumpData["ip"], xmlDumpData["port"], ))
             threads.append(thread)
+            #thread.join() # Might be slowing down, might have to put somewhere else.
             thread.start()
         except Exception as error:
             print(error)
