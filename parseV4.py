@@ -14,7 +14,6 @@ outputFileName = "3-13 all ports.txt"
 
 # Internal varibles
 que = []
-httpPorts = ["80", "443", "8008", "8080", "8081", "8000"]
 threads = []
 writingToFile = False
 finished = False
@@ -27,6 +26,7 @@ xmlDumpData = {
 
 # Functions
 def findHTMLTitle(content):
+    content = content.replace("\"", "")
     n1 = content.find("<title>")
     n2 = content.find("</title>")
     if n1 != -1 and n2 != -1:
@@ -41,12 +41,9 @@ def PTRRecord(ip):
         return None
 
 def networkRequest(ip, port):
-    if port in httpPorts:
-        try:
-            return findHTMLTitle(str(requests.get(f"http://{ip}:{port}", verify=False, timeout=25, allow_redirects=True).content))
-        except:
-            return None
-    else:
+    try:
+        return findHTMLTitle(str(requests.get(f"http://{ip}:{port}", verify=False, timeout=25, allow_redirects=True).content))
+    except:
         return None
 
 def socketRequest(ip, port):
