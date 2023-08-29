@@ -9,8 +9,8 @@ requests.urllib3.disable_warnings()
 
 # Settings
 maxAmountOfThreads = 2000
-xmlFileName = "3-13 all ports.xml"
-outputFileName = "3-13 all ports.txt"
+xmlFileName = "8-28-29 http.xml"
+outputFileName = xmlFileName + ".txt"
 
 # Internal varibles
 que = []
@@ -42,7 +42,12 @@ def PTRRecord(ip):
 
 def networkRequest(ip, port):
     try:
-        return findHTMLTitle(str(requests.get(f"http://{ip}:{port}", verify=False, timeout=25, allow_redirects=True).content))
+        r = requests.get(f"http://{ip}:{port}", verify=False, timeout=25, allow_redirects=True)
+        if r.status_code == 200:
+            return findHTMLTitle(str(r.content))
+        else:
+            r = requests.get(f"https://{ip}:{port}", verify=False, timeout=25, allow_redirects=True)
+            return findHTMLTitle(str(r.content))
     except:
         return None
 
@@ -74,10 +79,14 @@ def writeOutFileQue(fileName, dataQue):
             file.write(data)
 
 def processData(ip, port):
-    name = networkRequest(ip, port)
+    try:
+        name1 = 
+        name2 = PTRRecord(ip).strip()
 
-    if not name:
-        name = PTRRecord(ip)
+        with lock:
+            que.append(f"{ip}:{port}\t{name2}\n")
+    except:
+        pass
     
     """
     name = ""
@@ -89,9 +98,7 @@ def processData(ip, port):
         with lock:
             que.append(f"{ip}:{port} {dnsLookup} \t{name}\n")
     """
-    if name != None and name != "":
-        with lock:
-            que.append(f"{ip}:{port}\t{name}\n")
+    
     return
 # mutexes, .join might be the fix??
 def listToFile():
